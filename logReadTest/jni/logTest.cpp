@@ -1,4 +1,4 @@
-#include "../logcat/filter_msg.h"
+#include "../../logcat/filter_msg.h"
 
 int main( int argc, char *argv[] ) {
 	int lineNum;
@@ -14,7 +14,7 @@ int main( int argc, char *argv[] ) {
 	
 	// Display all messages read in now.
 	LogPriTagMsg *filter = filters;
-	while( filter->next!= NULL ) {
+	while( filter!= NULL ) {
 		printf( "\nLog level: %c, Tag: %s, Message: %s\n", filter->logLevel, filter->tag, filter->msg );
 		filter = filter->next;
 	}

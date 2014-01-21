@@ -5,7 +5,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := testLog
 
 # List your C files to compile
-LOCAL_SRC_FILES := testLog.cpp
+LOCAL_SRC_FILES := logTest.cpp
 
 #this option will build executables instead of building library for android application.
 include $(BUILD_EXECUTABLE)

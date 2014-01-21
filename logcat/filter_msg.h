@@ -38,7 +38,6 @@ int load_log_filters( int *lineNum, LogPriTagMsg **filterMsgs ) {
 	char line[ MSG_FILTER_MAX_LINE_LEN + 1 ];
 	int linesRead = 0;
 	LogPriTagMsg *newMsg = new LogPriTagMsg();
-	*filterMsgs = newMsg;
 
 	while( !feof( filterMsg ) ) {
 		if( fgets( line, MSG_FILTER_MAX_LINE_LEN, filterMsg ) != NULL ) {
