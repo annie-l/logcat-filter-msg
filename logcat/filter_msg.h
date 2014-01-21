@@ -23,7 +23,7 @@ int is_whitespace_char( char c ) {
 typedef struct LogPriTagMsg {
 	char logLevel;
 	char tag [ TAG_MAX_LEN + 1 ];
-	char msg [ TAG_MAX_LEN + 1 ];
+	char msg [ MSG_MAX_LEN + 1 ];
 } LogPriTagMsg;
 
 int load_log_filters( int *lineNum, vector<LogPriTagMsg> &filterMsgs ) {
