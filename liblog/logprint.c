@@ -166,19 +166,6 @@ int android_log_shouldPrintLine (
     return pri >= filterPriForTag(p_format, tag);
 }
 
-/**
-*/
-int android_log_msg_shouldPrintLine(
-	AndroidLogFormat *p_format, const char *tag, const char *msg,
-	android_LogPriority pri)
-{
-	if( android_log_shouldPrintLine ) {
-		// test message for filters.
-		if( filterMessageCriteria )
-	}	
-}
-
-
 AndroidLogFormat *android_log_format_new()
 {
     AndroidLogFormat *p_ret;
