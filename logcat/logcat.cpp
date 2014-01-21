@@ -20,12 +20,16 @@
 #include <sys/stat.h>
 #include <arpa/inet.h>
 
+#include "filter_msg.h"
+
 #define DEFAULT_LOG_ROTATE_SIZE_KBYTES 16
 #define DEFAULT_MAX_ROTATED_LOGS 4
 
 static AndroidLogFormat * g_logformat;
 static bool g_nonblock = false;
 static int g_tail_lines = 0;
+
+std::vector<LogPriTagMsg> filters; 
 
 /* logd prefixes records with a length field */
 #define RECORD_LENGTH_FIELD_SIZE_BYTES sizeof(uint32_t)
@@ -177,21 +181,23 @@ static void processBuffer(log_device_t* dev, struct logger_entry *buf)
     }
 
     if (android_log_shouldPrintLine(g_logformat, entry.tag, entry.priority)) {
-        if (false && g_devCount > 1) {
-            binaryMsgBuf[0] = dev->label;
-            binaryMsgBuf[1] = ' ';
-            bytesWritten = write(g_outFD, binaryMsgBuf, 2);
+		if( !android_msg_filter_should_not_printLine( filters, entry.message ) ) {
+            if (false && g_devCount > 1) {
+                binaryMsgBuf[0] = dev->label;
+                binaryMsgBuf[1] = ' ';
+                bytesWritten = write(g_outFD, binaryMsgBuf, 2);
+                if (bytesWritten < 0) {
+                    perror("output error");
+                    exit(-1);
+                }
+            }
+        
+            bytesWritten = android_log_printLogLine(g_logformat, g_outFD, &entry);
+
             if (bytesWritten < 0) {
                 perror("output error");
                 exit(-1);
             }
-        }
-
-        bytesWritten = android_log_printLogLine(g_logformat, g_outFD, &entry);
-
-        if (bytesWritten < 0) {
-            perror("output error");
-            exit(-1);
         }
     }
 
@@ -465,6 +471,12 @@ int main(int argc, char **argv)
     log_device_t* devices = NULL;
     log_device_t* dev;
     bool needBinary = false;
+	
+	int linesNum=0;
+	if( load_log_filters( &linesNum, filters )< 0 ) {
+		fprintf(stderr,"Could not read the supress log message file. /etc/logcat_msg_filters.conf\n");
+		fprintf(stderr,"Error on line %d\n",linesNum );
+	} 
 
     g_logformat = android_log_format_new();
 
