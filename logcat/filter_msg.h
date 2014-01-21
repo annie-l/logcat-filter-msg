@@ -22,7 +22,6 @@ typedef struct LogPriTagMsg {
 	char tag [ TAG_MAX_LEN + 1 ];
 	char msg [ MSG_MAX_LEN + 1 ];
 	LogPriTagMsg *next;
-	
 	LogPriTagMsg() { next = NULL; }
 	~LogPriTagMsg() { delete next; }
 } LogPriTagMsg;
