@@ -1,11 +1,9 @@
 #include "../logcat/filter_msg.h"
 
-using std::vector;
-
 int main( int argc, char *argv[] ) {
 	int lineNum;
-	vector<LogPriTagMsg> filters;	
-	int success = load_log_filters( &lineNum, filters );
+	LogPriTagMsg *filters = NULL;	
+	int success = load_log_filters( &lineNum, &filters );
 	if( success >= 0 ) {
 		printf( "\nLoad successful. Lines Read =%d\n", success );
 	}
@@ -15,8 +13,10 @@ int main( int argc, char *argv[] ) {
 	}
 	
 	// Display all messages read in now.
-	for( int i=0; i< filters.size(); i++ ) {
-		printf( "\nLog level: %c, Tag: %s, Message: %s\n", filters[i].logLevel, filters[i].tag, filters[i].msg );
+	LogPriTagMsg *filter = filters;
+	while( filter->next!= NULL ) {
+		printf( "\nLog level: %c, Tag: %s, Message: %s\n", filter->logLevel, filter->tag, filter->msg );
+		filter = filter->next;
 	}
 
 	printf( "\n\n\nNow testing filtering\n" );

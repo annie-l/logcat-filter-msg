@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <vector>
 
 #define MSG_FILTER_CONFIG "/etc/logcat_msg_filters.conf"  
 #define NOTHING_LOADED 	0
@@ -13,8 +12,6 @@
 #define TAG_MAX_LEN             30
 #define MSG_MAX_LEN             65
 
-using std::vector;
-
 int is_whitespace_char( char c ) {
 	if( c==' ' || c=='\t' || c=='\n' || c=='\r' ) return 1;
 	else return 0;
@@ -23,10 +20,14 @@ int is_whitespace_char( char c ) {
 typedef struct LogPriTagMsg {
 	char logLevel;
 	char tag [ TAG_MAX_LEN + 1 ];
-	char msg [ TAG_MAX_LEN + 1 ];
+	char msg [ MSG_MAX_LEN + 1 ];
+	LogPriTagMsg *next;
+	
+	LogPriTagMsg() { next = NULL; }
+	~LogPriTagMsg() { delete next; }
 } LogPriTagMsg;
 
-int load_log_filters( int *lineNum, vector<LogPriTagMsg> &filterMsgs ) {
+int load_log_filters( int *lineNum, LogPriTagMsg **filterMsgs ) {
 	// Typical filter line will be:
 	// D OpenCV_NativeCamera "### Camera FPS ###"\n
 	FILE *filterMsg = fopen( MSG_FILTER_CONFIG, "r" );
@@ -37,7 +38,8 @@ int load_log_filters( int *lineNum, vector<LogPriTagMsg> &filterMsgs ) {
 	
 	char line[ MSG_FILTER_MAX_LINE_LEN + 1 ];
 	int linesRead = 0;
-	LogPriTagMsg newMsg;
+	LogPriTagMsg *newMsg = new LogPriTagMsg();
+	*filterMsgs = newMsg;
 
 	while( !feof( filterMsg ) ) {
 		if( fgets( line, MSG_FILTER_MAX_LINE_LEN, filterMsg ) != NULL ) {
@@ -47,16 +49,16 @@ int load_log_filters( int *lineNum, vector<LogPriTagMsg> &filterMsgs ) {
 			if( line[ i ] == '#' || line[ i ] =='\n' || line[ i ] =='\r' ) // Ignore line. This is a comment.
 				continue;
 			if( strchr("VDIWEFS",line[ i ])== NULL ) return ERROR_READING_FILE; // Incorrect type of log leve. Error! 
-			newMsg.logLevel = line[ i ];// Valid type of priority level
+			newMsg->logLevel = line[ i ];// Valid type of priority level
 			i++; if( !is_whitespace_char( line[ i ] ) ) return ERROR_READING_FILE; 
 			while( i<len && is_whitespace_char( line[ i ] ) ) i++; 		// Gobble white spaces		
 			int j=0; 
 			while( i<len && !is_whitespace_char( line[i] ) ) { // Read in the tag
-					newMsg.tag[ j++ ] = line[ i++ ];
+					newMsg->tag[ j++ ] = line[ i++ ];
 					if( j >= TAG_MAX_LEN ) { 								// Exceeded max tag length. Error!
 						return ERROR_READING_FILE; 
 					} 
-			} newMsg.tag[ j++ ] = '\0'; 
+			} newMsg->tag[ j++ ] = '\0'; 
 			//printf("\nTag : %s",newMsg.tag);
 			if( !is_whitespace_char( line[i] ) ) return ERROR_READING_FILE; // Expected white space. Error! 	
 			while( i<len && is_whitespace_char( line[ i ] ) ) i++; 		// Gobble some more white spaces	
@@ -65,29 +67,40 @@ int load_log_filters( int *lineNum, vector<LogPriTagMsg> &filterMsgs ) {
 				return ERROR_READING_FILE;			// Expected double quotes. Error!
 			i++; j = 0; 
 			while( i<len && line[i]!='\"' ) {
-				newMsg.msg[ j++ ] = line[ i++ ];
+				newMsg->msg[ j++ ] = line[ i++ ];
 				if( j >= MSG_MAX_LEN ) return ERROR_READING_FILE;		// Exceeded max msg length. Error!
 			} 
-			newMsg.msg[ j ] = '\0';
+			newMsg->msg[ j ] = '\0';
 			if( i+1<len-1 ) { return ERROR_READING_FILE; // Unexpected characters. Error!
 			}
 			//printf("\nMsg : %s\n\n",newMsg.msg);
 			linesRead++;
-			filterMsgs.push_back( newMsg );	
+			if( *filterMsgs==NULL ) { 
+				*filterMsgs = newMsg; 
+			}
+			else { // Create a new message.
+				LogPriTagMsg *tempMsg = new LogPriTagMsg();	
+				newMsg->next = tempMsg;
+				newMsg = newMsg->next;
+				newMsg->next = NULL;
+			}
+			//filterMsgs.push_back( newMsg );	
 		}	
 	}
 	fclose( filterMsg );	
 	return linesRead;
 }
 
-int android_msg_filter_should_not_printLine( const vector<LogPriTagMsg> &filters, 
+int android_msg_filter_should_not_printLine( const LogPriTagMsg *filters, 
 	const char *tag, const char *msg ) {
-	for( int i=0; i<filters.size(); i++ ) {
-		if( strcmp( tag, filters[ i ].tag )==0 ) {
-			if( strstr( msg, filters[ i ].msg )!= NULL ) { return 1; 
+	LogPriTagMsg *filter = (LogPriTagMsg*)filters;
+	while( filter != NULL ) {
+		if( strcmp( tag, filter->tag )==0 ) {
+			if( strstr( msg, filter->msg )!= NULL ) { return 1; 
 				// Found filters[i].msg in msg, so don't print the line.
 			}
 		}
+		filter = filter->next;
 	}
 	return 0;	// Didn't find it, so print the line.	
 }
