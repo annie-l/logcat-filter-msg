@@ -29,7 +29,7 @@ static AndroidLogFormat * g_logformat;
 static bool g_nonblock = false;
 static int g_tail_lines = 0;
 
-std::vector<LogPriTagMsg> filters; 
+LogPriTagMsg *filters = NULL; 
 
 /* logd prefixes records with a length field */
 #define RECORD_LENGTH_FIELD_SIZE_BYTES sizeof(uint32_t)
@@ -473,7 +473,7 @@ int main(int argc, char **argv)
     bool needBinary = false;
 	
 	int linesNum=0;
-	if( load_log_filters( &linesNum, filters )< 0 ) {
+	if( load_log_filters( &linesNum, &filters )< 0 ) {
 		fprintf(stderr,"Could not read the supress log message file. /etc/logcat_msg_filters.conf\n");
 		fprintf(stderr,"Error on line %d\n",linesNum );
 	} 
