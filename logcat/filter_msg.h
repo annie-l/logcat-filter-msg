@@ -5,7 +5,7 @@
 #include <string.h>
 #include <vector>
 
-#define MSG_FILTER_CONFIG "logcat_msg_filters.conf"  
+#define MSG_FILTER_CONFIG "/etc/logcat_msg_filters.conf"  
 #define NOTHING_LOADED 	0
 #define ERROR_READING_FILE -1
 
@@ -80,10 +80,14 @@ int load_log_filters( int *lineNum, vector<LogPriTagMsg> &filterMsgs ) {
 	return linesRead;
 }
 
-int android_msg_filter_should_not_printLine( const vector<LogPriTagMsg> &filters, const char *msg ) {
+int android_msg_filter_should_not_printLine( const vector<LogPriTagMsg> &filters, 
+	const char *tag, const char *msg ) {
 	for( int i=0; i<filters.size(); i++ ) {
-		if( strstr( msg, filters[ i ].msg )!= NULL ) return 1; 
-			// Found filters[i].msg in msg, so don't print the line.
+		if( strcmp( tag, filters[ i ].tag )==0 ) {
+			if( strstr( msg, filters[ i ].msg )!= NULL ) { return 1; 
+				// Found filters[i].msg in msg, so don't print the line.
+			}
+		}
 	}
 	return 0;	// Didn't find it, so print the line.	
 }

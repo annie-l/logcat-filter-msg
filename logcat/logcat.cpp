@@ -181,7 +181,7 @@ static void processBuffer(log_device_t* dev, struct logger_entry *buf)
     }
 
     if (android_log_shouldPrintLine(g_logformat, entry.tag, entry.priority)) {
-		if( !android_msg_filter_should_not_printLine( filters, entry.message ) ) {
+		if( !android_msg_filter_should_not_printLine( filters, entry.tag, entry.message ) ) {
             if (false && g_devCount > 1) {
                 binaryMsgBuf[0] = dev->label;
                 binaryMsgBuf[1] = ' ';
