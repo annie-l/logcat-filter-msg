@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MSG_FILTER_CONFIG "/etc/logcat_msg_filters.conf"  
+#define MSG_FILTER_CONFIG "logcat_msg_filters.conf"  
 #define NOTHING_LOADED 	0
 #define ERROR_READING_FILE -1
 
@@ -28,7 +28,11 @@ typedef struct LogPriTagMsg {
 
 int load_log_filters( int *lineNum, LogPriTagMsg **filterMsgs ) {
 	// Typical filter line will be:
-	// D OpenCV_NativeCamera "### Camera FPS ###"\n
+	// D "OpenCV_NativeCamera" "### Camera FPS ###"\n
+	// delete *filterMsgs;
+	*filterMsgs = NULL;
+	LogPriTagMsg *curr = *filterMsgs;
+
 	FILE *filterMsg = fopen( MSG_FILTER_CONFIG, "r" );
 	if( filterMsg == 0 ) {
 		if ( filterMsg == NULL) perror ("Error opening file");
@@ -37,27 +41,27 @@ int load_log_filters( int *lineNum, LogPriTagMsg **filterMsgs ) {
 	
 	char line[ MSG_FILTER_MAX_LINE_LEN + 1 ];
 	int linesRead = 0;
-	LogPriTagMsg *newMsg = new LogPriTagMsg();
 
 	while( !feof( filterMsg ) ) {
 		if( fgets( line, MSG_FILTER_MAX_LINE_LEN, filterMsg ) != NULL ) {
-			//fprintf( stdout,"%s", line );
+			fprintf( stdout,"%s", line );
 			*lineNum = linesRead + 1;
 			int i = 0, len = strlen( line );
 			if( line[ i ] == '#' || line[ i ] =='\n' || line[ i ] =='\r' ) // Ignore line. This is a comment.
 				continue;
+			LogPriTagMsg *newMsg = new LogPriTagMsg(); newMsg->next = NULL;
 			if( strchr("VDIWEFS",line[ i ])== NULL ) return ERROR_READING_FILE; // Incorrect type of log leve. Error! 
 			newMsg->logLevel = line[ i ];// Valid type of priority level
 			i++; if( !is_whitespace_char( line[ i ] ) ) return ERROR_READING_FILE; 
 			while( i<len && is_whitespace_char( line[ i ] ) ) i++; 		// Gobble white spaces		
 			int j=0; 
-			while( i<len && !is_whitespace_char( line[i] ) ) { // Read in the tag
+			while( (i+1)<len && !(is_whitespace_char( line[i] ) && line[i+1]=='\"') ) { // Read in the tag
 					newMsg->tag[ j++ ] = line[ i++ ];
 					if( j >= TAG_MAX_LEN ) { 								// Exceeded max tag length. Error!
 						return ERROR_READING_FILE; 
 					} 
 			} newMsg->tag[ j++ ] = '\0'; 
-			//printf("\nTag : %s",newMsg.tag);
+			printf("\nAddress: %x, \nTag : %s,",newMsg, newMsg->tag);
 			if( !is_whitespace_char( line[i] ) ) return ERROR_READING_FILE; // Expected white space. Error! 	
 			while( i<len && is_whitespace_char( line[ i ] ) ) i++; 		// Gobble some more white spaces	
 			// We expect the match string to be specified in double quotes.
@@ -71,18 +75,16 @@ int load_log_filters( int *lineNum, LogPriTagMsg **filterMsgs ) {
 			newMsg->msg[ j ] = '\0';
 			if( i+1<len-1 ) { return ERROR_READING_FILE; // Unexpected characters. Error!
 			}
-			//printf("\nMsg : %s\n\n",newMsg.msg);
+			printf("\nMsg : %s\n\n",newMsg->msg);
 			linesRead++;
-			if( *filterMsgs==NULL ) { 
-				*filterMsgs = newMsg; 
+			if( (*filterMsgs)==NULL ) { 
+				(*filterMsgs) = newMsg; 
+				curr = newMsg;
 			}
 			else { // Create a new message.
-				LogPriTagMsg *tempMsg = new LogPriTagMsg();	
-				newMsg->next = tempMsg;
-				newMsg = newMsg->next;
-				newMsg->next = NULL;
+				curr->next = newMsg; 	
+				curr = curr->next;
 			}
-			//filterMsgs.push_back( newMsg );	
 		}	
 	}
 	fclose( filterMsg );	
