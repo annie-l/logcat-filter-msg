@@ -26,6 +26,11 @@ typedef struct LogPriTagMsg {
 	~LogPriTagMsg() { delete next; }
 } LogPriTagMsg;
 
+int cleanUpAndReturn( LogPriTagMsg *newMsg, int errorCode ) {
+	delete newMsg;
+	return errorCode;
+}
+
 int load_log_filters( int *lineNum, LogPriTagMsg **filterMsgs ) {
 	// Typical filter line will be:
 	// D "OpenCV_NativeCamera" "### Camera FPS ###"\n
@@ -50,30 +55,31 @@ int load_log_filters( int *lineNum, LogPriTagMsg **filterMsgs ) {
 			if( line[ i ] == '#' || line[ i ] =='\n' || line[ i ] =='\r' ) // Ignore line. This is a comment.
 				continue;
 			LogPriTagMsg *newMsg = new LogPriTagMsg(); newMsg->next = NULL;
-			if( strchr("VDIWEFS",line[ i ])== NULL ) return ERROR_READING_FILE; // Incorrect type of log leve. Error! 
-			newMsg->logLevel = line[ i ];// Valid type of priority level
-			i++; if( !is_whitespace_char( line[ i ] ) ) return ERROR_READING_FILE; 
+			if( strchr("VDIWEFS",line[ i ])== NULL ) {
+				return cleanUpAndReturn( newMsg, ERROR_READING_FILE ); } // Incorrect type of log level. Error! 
+			newMsg->logLevel = line[ i ]; // Valid type of priority level
+			i++; if( !is_whitespace_char( line[ i ] ) ) return cleanUpAndReturn( newMsg, ERROR_READING_FILE ); 
 			while( i<len && is_whitespace_char( line[ i ] ) ) i++; 		// Gobble white spaces		
 			int j=0; 
 			while( (i+1)<len && !(is_whitespace_char( line[i] ) && line[i+1]=='\"') ) { // Read in the tag
 					newMsg->tag[ j++ ] = line[ i++ ];
 					if( j >= TAG_MAX_LEN ) { 								// Exceeded max tag length. Error!
-						return ERROR_READING_FILE; 
+						return cleanUpAndReturn( newMsg, ERROR_READING_FILE ); 
 					} 
 			} newMsg->tag[ j++ ] = '\0'; 
 			printf("\nAddress: %x, \nTag : %s,",newMsg, newMsg->tag);
-			if( !is_whitespace_char( line[i] ) ) return ERROR_READING_FILE; // Expected white space. Error! 	
+			if( !is_whitespace_char( line[i] ) ) return cleanUpAndReturn( newMsg, ERROR_READING_FILE ); // Expected white space. Error! 	
 			while( i<len && is_whitespace_char( line[ i ] ) ) i++; 		// Gobble some more white spaces	
 			// We expect the match string to be specified in double quotes.
 			if( line[i] != '\"' ) 
-				return ERROR_READING_FILE;			// Expected double quotes. Error!
+				return cleanUpAndReturn( newMsg, ERROR_READING_FILE );			// Expected double quotes. Error!
 			i++; j = 0; 
 			while( i<len && line[i]!='\"' ) {
 				newMsg->msg[ j++ ] = line[ i++ ];
-				if( j >= MSG_MAX_LEN ) return ERROR_READING_FILE;		// Exceeded max msg length. Error!
+				if( j >= MSG_MAX_LEN ) return cleanUpAndReturn( newMsg, ERROR_READING_FILE );		// Exceeded max msg length. Error!
 			} 
 			newMsg->msg[ j ] = '\0';
-			if( i+1<len-1 ) { return ERROR_READING_FILE; // Unexpected characters. Error!
+			if( i+1<len-1 ) { return cleanUpAndReturn( newMsg, ERROR_READING_FILE ); // Unexpected characters. Error!
 			}
 			printf("\nMsg : %s\n\n",newMsg->msg);
 			linesRead++;
