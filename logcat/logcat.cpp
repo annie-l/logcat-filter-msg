@@ -29,7 +29,7 @@ static AndroidLogFormat * g_logformat;
 static bool g_nonblock = false;
 static int g_tail_lines = 0;
 
-LogPriTagMsg *filters = NULL; 
+static LogPriTagMsg * g_msgfilters = NULL; 
 
 /* logd prefixes records with a length field */
 #define RECORD_LENGTH_FIELD_SIZE_BYTES sizeof(uint32_t)
@@ -181,7 +181,7 @@ static void processBuffer(log_device_t* dev, struct logger_entry *buf)
     }
 
     if (android_log_shouldPrintLine(g_logformat, entry.tag, entry.priority)) {
-		if( !android_msg_filter_should_not_printLine( filters, entry.tag, entry.message ) ) {
+		if( android_msg_filter_should_printLine( g_msgfilters, entry.tag, entry.message ) ) {
             if (false && g_devCount > 1) {
                 binaryMsgBuf[0] = dev->label;
                 binaryMsgBuf[1] = ' ';
@@ -473,8 +473,8 @@ int main(int argc, char **argv)
     bool needBinary = false;
 	
 	int linesNum=0;
-	if( load_log_filters( &linesNum, &filters )< 0 ) {
-		fprintf(stderr,"Could not read the supress log message file. /etc/logcat_msg_filters.conf\n");
+	if( load_log_filters( &linesNum, &g_msgfilters )< 0 ) {
+		fprintf(stderr,"Could not read the supress log message file. /system/logcat_msg_filters.conf\n");
 		fprintf(stderr,"Error on line %d\n",linesNum );
 	} 
 
@@ -796,6 +796,9 @@ int main(int argc, char **argv)
         android::g_eventTagMap = android_openEventTagMap(EVENT_TAG_MAP_FILE);
 
     android::readLogLines(devices);
+	
+	// Cleanup msg filters before quitting.
+	delete g_msgfilters;
 
     return 0;
 }

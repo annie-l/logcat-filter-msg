@@ -3,7 +3,7 @@
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES:= logcat.cpp event.logtags
+LOCAL_SRC_FILES:= logcat.cpp filter_msgs.cpp event.logtags
 
 LOCAL_SHARED_LIBRARIES := liblog
 

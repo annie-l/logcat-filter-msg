@@ -26,11 +26,13 @@ int main( int argc, char *argv[] ) {
 	char str3[] = "I/OpenCV_NativeCamera(16874): ### Camera FPS ### [53520] Frames, 30.01 FPS"
 ;
 	char str4[] = "I/BarcodeDetector - native(16187): motionThreshold=20.000000, deltaT =0.032702";
-	if( android_msg_filter_should_not_printLine( filters,"NvOsDebugPrintf", str1 ) ) printf("\nWill not print str1");
-	if( android_msg_filter_should_not_printLine( filters,"OpenCV_NativeCamera", str2 ) ) printf("\nWill not print str2");
-	if( android_msg_filter_should_not_printLine( filters,"OpenCV_NativeCamera", str3 ) ) printf("\nWill not print str3");
-	if( android_msg_filter_should_not_printLine( filters,"BarcodeDetector - native", str4 ) ) printf("\nWill not print str4");
+	if( !android_msg_filter_should_printLine( filters,"NvOsDebugPrintf", str1 ) ) printf("\nWill not print str1");
+	if( !android_msg_filter_should_printLine( filters,"OpenCV_NativeCamera", str2 ) ) printf("\nWill not print str2");
+	if( !android_msg_filter_should_printLine( filters,"OpenCV_NativeCamera", str3 ) ) printf("\nWill not print str3");
+	if( !android_msg_filter_should_printLine( filters,"BarcodeDetector - native", str4 ) ) printf("\nWill not print str4");
 
 	printf( "\n\n" );
+
+	delete filters;
 
 }
