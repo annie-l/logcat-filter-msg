@@ -49,7 +49,7 @@ int load_log_filters( int *lineNum, LogPriTagMsg **filterMsgs ) {
 
 	while( !feof( filterMsg ) ) {
 		if( fgets( line, MSG_FILTER_MAX_LINE_LEN, filterMsg ) != NULL ) {
-			fprintf( stdout,"%s", line );
+			//fprintf( stdout,"%s", line );
 			*lineNum = linesRead + 1;
 			int i = 0, len = strlen( line );
 			if( line[ i ] == '#' || line[ i ] =='\n' || line[ i ] =='\r' ) // Ignore line. This is a comment.
@@ -67,7 +67,7 @@ int load_log_filters( int *lineNum, LogPriTagMsg **filterMsgs ) {
 						return cleanUpAndReturn( newMsg, ERROR_READING_FILE ); 
 					} 
 			} newMsg->tag[ j++ ] = '\0'; 
-			printf("\nAddress: %x, \nTag : %s,",newMsg, newMsg->tag);
+			//printf("\nAddress: %x, \nTag : %s,",newMsg, newMsg->tag);
 			if( !is_whitespace_char( line[i] ) ) return cleanUpAndReturn( newMsg, ERROR_READING_FILE ); // Expected white space. Error! 	
 			while( i<len && is_whitespace_char( line[ i ] ) ) i++; 		// Gobble some more white spaces	
 			// We expect the match string to be specified in double quotes.
@@ -81,7 +81,7 @@ int load_log_filters( int *lineNum, LogPriTagMsg **filterMsgs ) {
 			newMsg->msg[ j ] = '\0';
 			if( i+1<len-1 ) { return cleanUpAndReturn( newMsg, ERROR_READING_FILE ); // Unexpected characters. Error!
 			}
-			printf("\nMsg : %s\n\n",newMsg->msg);
+			//printf("\nMsg : %s\n\n",newMsg->msg);
 			linesRead++;
 			if( (*filterMsgs)==NULL ) { 
 				(*filterMsgs) = newMsg; 
@@ -97,18 +97,18 @@ int load_log_filters( int *lineNum, LogPriTagMsg **filterMsgs ) {
 	return linesRead;
 }
 
-int android_msg_filter_should_not_printLine( const LogPriTagMsg *filters, 
+int android_msg_filter_should_printLine( const LogPriTagMsg *filters, 
 	const char *tag, const char *msg ) {
 	LogPriTagMsg *filter = (LogPriTagMsg*)filters;
 	while( filter != NULL ) {
 		if( strcmp( tag, filter->tag )==0 ) {
-			if( strstr( msg, filter->msg )!= NULL ) { return 1; 
+			if( strstr( msg, filter->msg )!= NULL ) { return 0; 
 				// Found filters[i].msg in msg, so don't print the line.
 			}
 		}
 		filter = filter->next;
 	}
-	return 0;	// Didn't find it, so print the line.	
+	return 1;	// Didn't find it, so print the line.	
 }
 
 #endif //  __FILTER_LOG_BY_MSG_H__
