@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MSG_FILTER_CONFIG "logcat_msg_filters.conf"  
+#define MSG_FILTER_CONFIG "/system/logcat_msg_filters.conf"  
 #define NOTHING_LOADED 	0
 #define ERROR_READING_FILE -1
 
@@ -19,7 +19,7 @@ typedef struct LogPriTagMsg {
 	LogPriTagMsg *next;
 	LogPriTagMsg() { next = NULL; }
 	~LogPriTagMsg() {
-		printf("\nDeleting %x",next);
+		//printf("\nDeleting %x",next);
 		delete next; 
 	}
 } LogPriTagMsg;

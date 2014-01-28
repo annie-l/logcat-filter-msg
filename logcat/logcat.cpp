@@ -181,7 +181,8 @@ static void processBuffer(log_device_t* dev, struct logger_entry *buf)
     }
 
     if (android_log_shouldPrintLine(g_logformat, entry.tag, entry.priority)) {
-		if( android_msg_filter_should_printLine( g_msgfilters, entry.tag, entry.message ) ) {
+	if( android_msg_filter_should_printLine( g_msgfilters, entry.tag, entry.message ) ) 
+        {
             if (false && g_devCount > 1) {
                 binaryMsgBuf[0] = dev->label;
                 binaryMsgBuf[1] = ' ';
@@ -797,8 +798,8 @@ int main(int argc, char **argv)
 
     android::readLogLines(devices);
 	
-	// Cleanup msg filters before quitting.
-	delete g_msgfilters;
+    // Cleanup msg filters before quitting.
+    delete g_msgfilters;
 
     return 0;
 }
