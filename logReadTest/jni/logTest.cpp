@@ -25,9 +25,9 @@ int main( int argc, char *argv[] ) {
 	char str2[] = "D/OpenCV_NativeCamera(16874): CameraHandler::initCameraConnect(0x694304f5, 0, 0x67407d70, 0x0)";
 	char str3[] = "I/OpenCV_NativeCamera(16874): ### Camera FPS ### [53520] Frames, 30.01 FPS"
 ;
-	if( android_msg_filter_should_not_printLine( filters,"NvOsDebugPrintf", str1 ) ) printf("\nWill not print str1");
-	if( android_msg_filter_should_not_printLine( filters,"OpenCV_NativeCamera", str2 ) ) printf("\nWill not print str2");
-	if( android_msg_filter_should_not_printLine( filters,"OpenCV_NativeCamera", str3 ) ) printf("\nWill not print str3");
+	if( !android_msg_filter_should_printLine( filters,"NvOsDebugPrintf", str1 ) ) printf("\nWill not print str1");
+	if( !android_msg_filter_should_printLine( filters,"OpenCV_NativeCamera", str2 ) ) printf("\nWill not print str2");
+	if( !android_msg_filter_should_printLine( filters,"OpenCV_NativeCamera", str3 ) ) printf("\nWill not print str3");
 
 	printf( "\n\n" );
 
